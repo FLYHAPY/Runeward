@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+using namespace std;
 #include "TowerBaseClass.generated.h"
+
 
 UCLASS()
 class RUNEWARD_API ATowerBaseClass : public AActor
@@ -47,10 +49,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Refrecens")
 	class ABulletPool* pool;
 
+
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
+	
 	UFUNCTION()
 	void CheckForEnemies();
 

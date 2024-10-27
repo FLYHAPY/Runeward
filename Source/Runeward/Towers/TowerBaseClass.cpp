@@ -6,7 +6,6 @@
 #include "BulletPool.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "TimerManager.h"
 #include "GameFramework/Actor.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -34,6 +33,16 @@ ATowerBaseClass::ATowerBaseClass()
 	RangeSphere->OnComponentEndOverlap.AddDynamic(this, &ATowerBaseClass::OnEnemyExitRange);
 	RangeSphere->OnComponentBeginOverlap.AddDynamic(this, &ATowerBaseClass::OnEnemyEnterRange);
 
+
+
+
+}
+
+// Called when the game starts or when spawned
+void ATowerBaseClass::BeginPlay()
+{
+	Super::BeginPlay();
+	
 	TArray<AActor*> FoundPool;
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Pool"), FoundPool);
 
@@ -41,12 +50,6 @@ ATowerBaseClass::ATowerBaseClass()
 	{
 		pool = Cast<ABulletPool>(FoundPool[0]);
 	}
-}
-
-// Called when the game starts or when spawned
-void ATowerBaseClass::BeginPlay()
-{
-	Super::BeginPlay();
 }
 
 // Called every frame
@@ -64,8 +67,8 @@ void ATowerBaseClass::Tick(float DeltaTime)
 		{
 			return;
 		}
-		pool->PortBull(GetActorLocation());
-		Shoot();
+		AActor* bullet = pool->TakeObjectOut("bullet");
+		bullet->SetActorLocation(GetActorLocation() + FVector(0, 0, 200));
 	}
 }
 

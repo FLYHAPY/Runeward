@@ -2,13 +2,24 @@
 
 #pragma once
 
-#include "Bullet.h"
 #include "CoreMinimal.h"
-#include "TowerBaseClass.h"
 #include "GameFramework/Actor.h"
 #include "BulletPool.generated.h"
 
+USTRUCT(BlueprintType)
+struct FConstructionList
+{
+	GENERATED_BODY();
 
+	UPROPERTY()
+	FName Key;
+
+	UPROPERTY()
+	int howManyObjectsToSpawn;
+
+	UPROPERTY()
+	TSubclassOf<AActor> ClassToSpawn;
+};
 
 UCLASS()
 class RUNEWARD_API ABulletPool : public AActor
@@ -19,14 +30,10 @@ public:
 	// Sets default values for this actor's properties
 	ABulletPool();
 
+	/*
 	UFUNCTION()
 	void TakeBulletFromQueue(ABullet* Bullet);
-	
-	UFUNCTION()
-	void CacheBulletsIntoQueue();
-
-	UFUNCTION()
-	void PortBull(FVector position);
+	*/
 
 protected:
 	// Called when the game starts or when spawned
@@ -47,7 +54,31 @@ protected:
 	UPROPERTY()
 	TArray <TWeakObjectPtr<AActor>> ActiveBullets;
 	
+	TMap<FName,TArray<TWeakObjectPtr<AActor>>> MultiMap;
+	
+	UPROPERTY(EditAnywhere, Category="Refrecens")
+	TArray <FConstructionList> ObjectsToSpawn;
+	
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	UFUNCTION()
+	AActor* TakeObjectOut(FName objectToTakeOut);
+
+	UFUNCTION()
+	void PutObjectBack(FName objectToTakeOut, TWeakObjectPtr<AActor> objectPulledOut);
+
+private:
+
+	UFUNCTION()
+	void CreatePooledObjects();
+	
+
+	/*UFUNCTION()
+	void CacheBulletsIntoQueue();
+
+	UFUNCTION()
+	void PortBull(AActor* position);*/
+	
 };

@@ -38,6 +38,14 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Bullet")
 	float bulletVelocity;
+
+	UPROPERTY(EditAnywhere, Category="Bullet")
+	bool bulletActive;
+
+	UPROPERTY(EditAnywhere, Category="Bullet")
+	FVector target;
+
+	
 	
 public:	
 	// Called every frame
