@@ -11,13 +11,13 @@ struct FConstructionList
 {
 	GENERATED_BODY();
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 	FName Key;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 	int howManyObjectsToSpawn;
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 	TSubclassOf<AActor> ClassToSpawn;
 };
 
@@ -38,15 +38,9 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<AActor> Bullet;
-
+	
 	UPROPERTY(EditAnywhere)
 	FVector SpawnLocation;
-
-	UPROPERTY(EditAnywhere)
-	int bulletsToSpawn;
 
 	// Ensure Pointers Use A UPROPERTY() To Avoid Dangling Pointers
 	TQueue <TWeakObjectPtr<AActor>> AllBullets;

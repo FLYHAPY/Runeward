@@ -4,6 +4,7 @@
 #include "TowerBaseClass.h"
 
 #include "BulletPool.h"
+#include "PoolSpawnable.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/Actor.h"
@@ -67,8 +68,13 @@ void ATowerBaseClass::Tick(float DeltaTime)
 		{
 			return;
 		}
-		AActor* bullet = pool->TakeObjectOut("bullet");
+		AActor* bullet = pool->TakeObjectOut("Bullet");
 		bullet->SetActorLocation(GetActorLocation() + FVector(0, 0, 200));
+
+		if(IPoolSpawnable* Spawnable = Cast<IPoolSpawnable>(bullet))
+		{
+			Spawnable->OnSpawnedFromPool(this);
+		}
 	}
 }
 

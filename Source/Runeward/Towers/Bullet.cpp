@@ -2,7 +2,6 @@
 
 
 #include "Bullet.h"
-#include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "TowerBaseClass.h"
 #include "GameFramework/Actor.h"

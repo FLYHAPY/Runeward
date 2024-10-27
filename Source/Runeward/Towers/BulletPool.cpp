@@ -1,17 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 #include "BulletPool.h"
 
-#include <map>
-
-#include "Bullet.h"
-
 // Sets default values
 ABulletPool::ABulletPool()
 {
 	Tags.Add(FName("Pool"));
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	bulletsToSpawn = 10;
 }
 
 // Called when the game starts or when spawned
@@ -50,7 +45,7 @@ void ABulletPool::CreatePooledObjects()
 	}
 }
 
-//this happens when a object call the pool to teleport an object to a certain location
+//this happens when an object call the pool to teleport an object to a certain location
 AActor* ABulletPool::TakeObjectOut(FName objectToTakeOut)
 {
 	TArray <TWeakObjectPtr<AActor>>* objectsOfThatType = MultiMap.Find(objectToTakeOut);
@@ -68,7 +63,7 @@ AActor* ABulletPool::TakeObjectOut(FName objectToTakeOut)
 	return nullptr;
 }
 
-//this happens when a object call the pool to be putted back into it
+//this happens when an object call the pool to be putted back into it
 void ABulletPool::PutObjectBack(FName objectToTakeOut, TWeakObjectPtr<AActor> objectPulledOut)
 {
 	TArray <TWeakObjectPtr<AActor>>* objectsOfThatType = MultiMap.Find(objectToTakeOut);
