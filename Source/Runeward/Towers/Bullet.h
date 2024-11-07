@@ -45,6 +45,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Bullet")
 	FVector target;
 
+	UPROPERTY(EditAnywhere, Category="Refrecens")
+	class ABulletPool* pool;
+
 	
 	
 public:	

@@ -31,16 +31,17 @@ void ABulletPool::CreatePooledObjects()
 {
 	for(int i = 0; i < ObjectsToSpawn.Num(); ++i)
 	{
+		TArray <TWeakObjectPtr<AActor>>& ActorToPopulate = MultiMap.Emplace(ObjectsToSpawn[i].Key);
 		for(int j = 0; j < ObjectsToSpawn[i].howManyObjectsToSpawn; ++j)
 		{
 			FActorSpawnParameters spawnParameters;
 			spawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 			AActor* ExampleActor = GetWorld()->SpawnActor(ObjectsToSpawn[i].ClassToSpawn, &FVector::ZeroVector, &FRotator::ZeroRotator, spawnParameters);
 
-			TArray <TWeakObjectPtr<AActor>> ActorToPopulate;
-			ActorToPopulate.Add(ExampleActor);
-			
-			MultiMap.Add(ObjectsToSpawn[i].Key, ActorToPopulate);
+			if(ExampleActor)
+			{
+				ActorToPopulate.Add(ExampleActor);
+			}
 		}
 	}
 }
@@ -67,6 +68,11 @@ AActor* ABulletPool::TakeObjectOut(FName objectToTakeOut)
 void ABulletPool::PutObjectBack(FName objectToTakeOut, TWeakObjectPtr<AActor> objectPulledOut)
 {
 	TArray <TWeakObjectPtr<AActor>>* objectsOfThatType = MultiMap.Find(objectToTakeOut);
+
+	if(objectsOfThatType->Num() == 0)
+	{
+		return;
+	}
 
 	if(!objectsOfThatType)
 		return;

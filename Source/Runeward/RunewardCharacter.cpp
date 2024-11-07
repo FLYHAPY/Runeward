@@ -10,7 +10,9 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
-#include "Towers/TowerBaseClass.h"	
+#include "Kismet/GameplayStatics.h"
+#include "Towers/BulletPool.h"
+#include "Towers/PoolSpawnable.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -60,17 +62,46 @@ void ARunewardCharacter::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
+	
+	TArray<AActor*> FoundPool;
+	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Pool"), FoundPool);
+
+	if(FoundPool.Num() >= 1)
+	{
+		pool = Cast<ABulletPool>(FoundPool[0]);
+	}
 }
 
 void ARunewardCharacter::SpawnCannon()
 {
+	if(!pool)
+	{
+		return;
+	}
+	AActor* cannon = pool->TakeObjectOut("Cannon");
+
+	if(!cannon)
+	{
+		return;
+	}
+		
+	cannon->SetActorLocation(GetActorLocation(), false, nullptr, ETeleportType::ResetPhysics);
+
+	if(IPoolSpawnable* Spawnable = Cast<IPoolSpawnable>(cannon))
+	{
+		Spawnable->OnSpawnedFromPool(this);
+	}
+	
+	/*
 	UWorld* World = GetWorld();
 	FRotator SpawnRotation = FRotator::ZeroRotator;
 	FActorSpawnParameters SpawnParameters = FActorSpawnParameters();
 	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
 	World->SpawnActor<ATowerBaseClass>(Cannon, GetActorLocation(), SpawnRotation, SpawnParameters);
+	*/
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 // Input
@@ -91,7 +122,6 @@ void ARunewardCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		
 		// Jumping
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ARunewardCharacter::SpawnCannon);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
 		// Moving
@@ -99,6 +129,9 @@ void ARunewardCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ARunewardCharacter::Look);
+
+		//Spawn Cannon
+		EnhancedInputComponent->BindAction(SpawnCannonAction, ETriggerEvent::Started, this, &ARunewardCharacter::SpawnCannon);
 	}
 	else
 	{

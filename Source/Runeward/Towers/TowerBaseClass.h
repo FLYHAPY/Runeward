@@ -3,13 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PoolSpawnable.h"
 #include "GameFramework/Actor.h"
-using namespace std;
 #include "TowerBaseClass.generated.h"
 
-
 UCLASS()
-class RUNEWARD_API ATowerBaseClass : public AActor
+class RUNEWARD_API ATowerBaseClass : public AActor, public IPoolSpawnable
 {
 	GENERATED_BODY()
 	
@@ -46,6 +45,8 @@ protected:
 
 	float timer;
 
+	bool spawned;
+
 	UPROPERTY(EditAnywhere, Category="Refrecens")
 	class ABulletPool* pool;
 
@@ -60,6 +61,8 @@ public:
 
 	UFUNCTION()
 	AActor* GetLockedEnemy();
+
+	virtual void OnSpawnedFromPool(AActor* Requestee) override;
 	
 	UFUNCTION()
 	void Shoot();

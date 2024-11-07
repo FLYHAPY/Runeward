@@ -34,6 +34,8 @@ ATowerBaseClass::ATowerBaseClass()
 	RangeSphere->OnComponentEndOverlap.AddDynamic(this, &ATowerBaseClass::OnEnemyExitRange);
 	RangeSphere->OnComponentBeginOverlap.AddDynamic(this, &ATowerBaseClass::OnEnemyEnterRange);
 
+	spawned = false;
+
 
 
 
@@ -57,24 +59,17 @@ void ATowerBaseClass::BeginPlay()
 void ATowerBaseClass::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
-	CheckForEnemies();
 
-	timer += DeltaTime;
-	
-	if(lockedEnemy && timer >= fireRate)
+	if(spawned)
 	{
-		if(!pool)
-		{
-			return;
-		}
-		AActor* bullet = pool->TakeObjectOut("Bullet");
-		bullet->SetActorLocation(GetActorLocation() + FVector(0, 0, 200));
+		CheckForEnemies();
 
-		if(IPoolSpawnable* Spawnable = Cast<IPoolSpawnable>(bullet))
+		timer += DeltaTime;
+	
+		if(lockedEnemy && timer >= fireRate)
 		{
-			Spawnable->OnSpawnedFromPool(this);
-		}
+			Shoot();
+		}	
 	}
 }
 
@@ -82,7 +77,7 @@ void ATowerBaseClass::CheckForEnemies()
 {
 	if (hasLockedEnemy)
 	{
-		// If we already have a enemy locked do nothing!!
+		// If we already have an enemy locked do nothing!!
 		return;
 	}
 	
@@ -116,10 +111,32 @@ AActor* ATowerBaseClass::GetLockedEnemy()
 	return lockedEnemy;
 }
 
+void ATowerBaseClass::OnSpawnedFromPool(AActor* Requestee)
+{
+	spawned = true;
+}
+
 void ATowerBaseClass::Shoot()
 {
+	if(!pool)
+	{
+		return;
+	}
+	AActor* bullet = pool->TakeObjectOut("Bullet");
+
+	if(!bullet)
+	{
+		return;
+	}
+		
+	bullet->SetActorLocation(GetActorLocation() + FVector(0, 0, 200), false, nullptr, ETeleportType::ResetPhysics);
+
+	if(IPoolSpawnable* Spawnable = Cast<IPoolSpawnable>(bullet))
+	{
+		Spawnable->OnSpawnedFromPool(this);
+	}
+
 	timer = 0.0f;
-	UE_LOG(LogTemp, Warning, TEXT("Shooting at enemy: %s"), *lockedEnemy->GetName());
 }
 
 void ATowerBaseClass::OnEnemyExitRange(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
@@ -134,7 +151,6 @@ void ATowerBaseClass::OnEnemyExitRange(UPrimitiveComponent* OverlappedComp, AAct
 
 void ATowerBaseClass::OnEnemyEnterRange(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-    
 	if (OtherActor && OtherActor->ActorHasTag(FName("Enemy")) && !hasLockedEnemy)
 	{
 		lockedEnemy = OtherActor;

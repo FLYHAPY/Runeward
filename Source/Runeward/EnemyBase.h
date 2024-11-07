@@ -22,7 +22,13 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category="Components")
 	class UStaticMeshComponent* EnemyMesh;
 
+	UPROPERTY(EditAnywhere, Category="Refrecens")
+	class ABulletPool* pool;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	
+	UFUNCTION()
+	void OnBulletHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 };
