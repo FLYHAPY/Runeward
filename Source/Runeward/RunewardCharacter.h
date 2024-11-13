@@ -47,7 +47,13 @@ class ARunewardCharacter : public ACharacter
 	/** Spawn Cannon Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* SpawnCannonAction;
-	
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* KeyQPressed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* KeyEPressed;
+
 public:
 	ARunewardCharacter();
 	
@@ -62,6 +68,13 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Refrecens")
 	class ABulletPool* pool;
+
+	int index = 0;
+
+	float health;
+
+	UPROPERTY(EditAnywhere, Category="Refrecens")
+	TArray <FName> TowerToSpawn;
 			
 
 protected:
@@ -80,7 +93,19 @@ public:
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
-	UFUNCTION(Blueprintable)
+	UFUNCTION(Blueprintable, Category = Functions)
 	void SpawnCannon();
+
+	UFUNCTION(Blueprintable, Category = Functions)
+	void OnQKeyPressed();
+
+	UFUNCTION(Blueprintable, Category = Functions)
+	void OnEKeyPressed();
+
+	UFUNCTION(BlueprintPure, Category = Functions)
+	FName ReturnIndex();
+
+	UFUNCTION(BlueprintCallable, Category = Functions)
+	void TakeDamage(float damage);
 };
 

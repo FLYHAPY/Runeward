@@ -77,7 +77,7 @@ void ABulletPool::PutObjectBack(FName objectToTakeOut, TWeakObjectPtr<AActor> ob
 	if(!objectsOfThatType)
 		return;
 	
-	objectsOfThatType->Add(objectPulledOut);
+	objectsOfThatType->AddUnique(objectPulledOut);
 }
 
 //Spawning all bullets and caching them into the queue

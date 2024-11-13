@@ -53,6 +53,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Refrecens")
 	TArray <FConstructionList> ObjectsToSpawn;
 	
+	
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

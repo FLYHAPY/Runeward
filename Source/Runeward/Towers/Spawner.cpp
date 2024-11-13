@@ -4,6 +4,7 @@
 #include "Spawner.h"
 #include "Kismet/GameplayStatics.h"
 #include "BulletPool.h"
+#include "PoolSpawnable.h"
 
 // Sets default values
 ASpawner::ASpawner()
@@ -38,7 +39,7 @@ void ASpawner::BeginPlay()
 void ASpawner::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	GEngine->AddOnScreenDebugMessage(1, 0, FColor::Red, "Time Between Waves = " + FString::SanitizeFloat(timeBetweenWaves, 2));
+	//GEngine->AddOnScreenDebugMessage(1, 0, FColor::Red, "Time Between Waves = " + FString::SanitizeFloat(timeBetweenWaves, 2));
 
 	if(finishedWave == true)
 	{
@@ -78,7 +79,12 @@ void ASpawner::SpawnEnemies()
 		return;
 	}
 
-	enemy->SetActorLocation(spawnLocation);
+	enemy->SetActorLocation(GetActorLocation());
+
+	if(IPoolSpawnable* Spawnable = Cast<IPoolSpawnable>(enemy))
+	{
+		Spawnable->OnSpawnedFromPool(this);
+	}
 
 	if(enemiesSpawned >= amountOfEnemiesToSpawn)
 	{

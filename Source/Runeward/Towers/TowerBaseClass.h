@@ -7,6 +7,8 @@
 #include "GameFramework/Actor.h"
 #include "TowerBaseClass.generated.h"
 
+class AEnemyBase;
+
 UCLASS()
 class RUNEWARD_API ATowerBaseClass : public AActor, public IPoolSpawnable
 {
@@ -47,9 +49,20 @@ protected:
 
 	bool spawned;
 
+	UPROPERTY(EditAnywhere, Category="Tower")
+	float damage;
+
 	UPROPERTY(EditAnywhere, Category="Refrecens")
 	class ABulletPool* pool;
 
+	UPROPERTY(EditAnywhere, Category="Refrecens")
+	class ASureToKillBlacklist* sureToKillBlacklist;
+
+	UPROPERTY(EditAnywhere, Category="Refrecens")
+	TArray<AActor*> EnemiesInRange;
+
+	UPROPERTY(EditAnywhere, Category="Refrecens")
+	AActor* MainTower;
 
 
 public:	
@@ -72,4 +85,13 @@ public:
 
 	UFUNCTION()
 	void OnEnemyEnterRange(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void Sort();
+
+	UFUNCTION()
+	void LockToAnEnemy();
+
+	UFUNCTION()
+	void IsLockedEnemyInsideRadius();
 };

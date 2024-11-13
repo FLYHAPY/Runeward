@@ -26,6 +26,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Bullet")
 	float range;
 
+	UPROPERTY(EditAnywhere, Category="Bullet")
+	float damage;
+
 	UPROPERTY(VisibleAnywhere, Category="Bullet")
 	class USphereComponent* Collision;
 
@@ -37,7 +40,7 @@ protected:
 	FVector StartLocation;
 
 	UPROPERTY(EditAnywhere, Category="Bullet")
-	float bulletVelocity;
+	float bulletSpeed;
 
 	UPROPERTY(EditAnywhere, Category="Bullet")
 	bool bulletActive;
@@ -47,6 +50,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Refrecens")
 	class ABulletPool* pool;
+
+	UPROPERTY(EditAnywhere, Category="Bullet")
+	int bounces;
 
 	
 	
@@ -61,4 +67,14 @@ public:
 	FOnBulletHit OnBulletHitDelegate;
 
 	virtual void OnSpawnedFromPool(AActor* Requestee) override;
+
+	void RegisterToCollision() const;
+	void UnregisterFromCollision() const;
+	
+	FScriptDelegate ScriptDelegate;
+
+	void SetDamage(float TowerDamage);
+
+	float GetDamage();
+
 };

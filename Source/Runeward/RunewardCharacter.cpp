@@ -13,6 +13,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Towers/BulletPool.h"
 #include "Towers/PoolSpawnable.h"
+#include "DrawDebugHelpers.h"  // Required for debug drawing functions
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -56,6 +57,8 @@ ARunewardCharacter::ARunewardCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+
+	health = 100;
 }
 
 void ARunewardCharacter::BeginPlay()
@@ -78,18 +81,94 @@ void ARunewardCharacter::SpawnCannon()
 	{
 		return;
 	}
-	AActor* cannon = pool->TakeObjectOut("Cannon");
 
-	if(!cannon)
+	// Variables
+	float TraceRadius = 100.0f;
+	FVector PlayerLocation = GetActorLocation();
+	FVector ForwardVector = GetActorForwardVector();
+	float SpawnDistance = 200.0f;
+
+	// Calculate spawn location in front of player
+	FVector SpawnLocation = PlayerLocation + (ForwardVector * SpawnDistance) + FVector(0, 0, -100);
+
+	FCollisionQueryParams TraceParams(FName(TEXT("SpawnTrace")), true, this);
+	TraceParams.bTraceComplex = true;
+	TraceParams.bReturnPhysicalMaterial = false;
+
+	// Perform the multi-sphere trace
+	TArray<FHitResult> HitResults;
+	bool bHit = GetWorld()->SweepMultiByChannel(
+		HitResults,
+		PlayerLocation,
+		SpawnLocation + FVector(0, 0, 50),
+		FQuat::Identity,
+		ECC_Visibility,  // Choose the appropriate channel for your obstacles
+		FCollisionShape::MakeSphere(TraceRadius),
+		TraceParams
+	);
+
+	// Draw debug sphere at the spawn location
+	DrawDebugSphere(
+		GetWorld(),
+		SpawnLocation + FVector(0, 0, 50),
+		TraceRadius,
+		12,             // Sphere segments (higher value = smoother sphere)
+		FColor::Green,  // Color of the end sphere
+		false,          // Persistent (false means it will disappear after duration)
+		5.0f            // Duration (seconds)
+	);
+
+	bool bSpawnAllowed = true;
+	for (const FHitResult& Hit : HitResults)
 	{
-		return;
+		// Get the hit component (e.g., the component that was hit by the trace)
+		UPrimitiveComponent* HitComponent = Hit.GetComponent();
+		if (Hit.GetActor())
+		{
+			// Log only when an obstruction is found, ignoring the floor
+			if (Hit.GetActor()->ActorHasTag("Floor"))
+			{
+				continue;
+			}
+        
+			// Check if this component has the desired tag
+			else if (HitComponent && HitComponent->ComponentHasTag("AOE"))
+			{
+				// If the component has the "IgnoreInSpawnTrace" tag, we can skip this hit
+				UE_LOG(LogTemp, Warning, TEXT("Found an ignored component: %s"), *HitComponent->GetName());
+				continue;  // Skip this hit since we don't want to block spawn
+			}
+			else
+			{
+				bSpawnAllowed = false;
+				UE_LOG(LogTemp, Warning, TEXT("Obstruction detected! Cannot spawn cube. Actor: %s"), *Hit.GetActor()->GetName());
+				break;  // Stop checking further, as we found an obstruction
+			}
+		}
 	}
-		
-	cannon->SetActorLocation(GetActorLocation(), false, nullptr, ETeleportType::ResetPhysics);
 
-	if(IPoolSpawnable* Spawnable = Cast<IPoolSpawnable>(cannon))
+	
+	// Check if there's an obstruction
+	if (bSpawnAllowed)
 	{
-		Spawnable->OnSpawnedFromPool(this);
+		// No obstruction or floor hit, spawn the cube
+		AActor* tower = pool->TakeObjectOut(TowerToSpawn[index]);
+
+		if(!tower)
+		{
+			return;
+		}
+		
+		tower->SetActorLocation(SpawnLocation, false, nullptr, ETeleportType::ResetPhysics);
+
+		if(IPoolSpawnable* Spawnable = Cast<IPoolSpawnable>(tower))
+		{
+			Spawnable->OnSpawnedFromPool(this);
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Obstruction detected! Cannot spawn cube."));
 	}
 	
 	/*
@@ -132,6 +211,10 @@ void ARunewardCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 		//Spawn Cannon
 		EnhancedInputComponent->BindAction(SpawnCannonAction, ETriggerEvent::Started, this, &ARunewardCharacter::SpawnCannon);
+
+		EnhancedInputComponent->BindAction(KeyQPressed, ETriggerEvent::Started, this, &ARunewardCharacter::OnQKeyPressed);
+
+		EnhancedInputComponent->BindAction(KeyEPressed, ETriggerEvent::Started, this, &ARunewardCharacter::OnEKeyPressed);
 	}
 	else
 	{
@@ -173,4 +256,36 @@ void ARunewardCharacter::Look(const FInputActionValue& Value)
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
+}
+
+void ARunewardCharacter::OnQKeyPressed()
+{
+	index-= 1;
+	if(index <= -1)
+	{
+		index = 1;
+	}
+	UE_LOG(LogTemp, Warning, TEXT("Player's health: %d"), index);
+
+}
+
+void ARunewardCharacter::OnEKeyPressed()
+{
+	index+=1;
+
+	if(index >= TowerToSpawn.Num())
+	{
+		index = 0;
+	}
+	UE_LOG(LogTemp, Warning, TEXT("Player's health: %d"), index);
+}
+
+FName ARunewardCharacter::ReturnIndex()
+{
+	return TowerToSpawn[index];
+}
+
+void ARunewardCharacter::TakeDamage(float damage)
+{
+	health -= damage;
 }

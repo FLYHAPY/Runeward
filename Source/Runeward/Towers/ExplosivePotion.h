@@ -3,11 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PoolSpawnable.h"
 #include "GameFramework/Actor.h"
 #include "ExplosivePotion.generated.h"
 
 UCLASS()
-class RUNEWARD_API AExplosivePotion : public AActor
+class RUNEWARD_API AExplosivePotion : public AActor, public IPoolSpawnable
 {
 	GENERATED_BODY()
 	
@@ -30,6 +31,14 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category="Components")
 	class USphereComponent* CollidedEnemySphere;
 
+	UPROPERTY(EditAnywhere, Category="Stats")
+	float damage;
+
+	FScriptDelegate ScriptDelegate1;
+
+	UPROPERTY(EditAnywhere, Category="Refrecens")
+	class ABulletPool* pool;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -38,5 +47,10 @@ public:
 
 	UFUNCTION()
 	void DetectEnemy(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	void RegisterToCollision() const;
+	void UnregisterFromCollision() const;
+
+	virtual void OnSpawnedFromPool(AActor* Requestee) override;
 
 };

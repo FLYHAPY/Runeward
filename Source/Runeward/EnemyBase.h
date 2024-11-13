@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Towers/PoolSpawnable.h"
 #include "EnemyBase.generated.h"
 
 UCLASS()
-class RUNEWARD_API AEnemyBase : public AActor
+class RUNEWARD_API AEnemyBase : public AActor, public IPoolSpawnable
 {
 	GENERATED_BODY()
 	
@@ -25,10 +26,31 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Refrecens")
 	class ABulletPool* pool;
 
+	UPROPERTY(VisibleAnywhere, Category="Stats")
+	float Health;
+
+	UPROPERTY(VisibleAnywhere, Category="Stats")
+	float maxHeath;
+
+	FScriptDelegate ScriptDelegate;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	
 	UFUNCTION()
 	void OnBulletHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	UFUNCTION()
+	float GetCurrentHealth();
+
+	UFUNCTION()
+	void SetCurrentHealth(float damage);
+
+	virtual void OnSpawnedFromPool(AActor* Requestee) override;
+	
+	void RegisterToCollision() const;
+	void UnregisterFromCollision() const;
+	
+	
 };

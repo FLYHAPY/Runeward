@@ -27,7 +27,7 @@ ABullet::ABullet()
 	//range = 1000.0f;
 	//Collision->SetSphereRadius(range);
 
-	bulletVelocity = 10;
+	bulletSpeed = 10;
 	Tags.Add(FName("Bullet"));
 }
 
@@ -35,10 +35,7 @@ ABullet::ABullet()
 void ABullet::BeginPlay()
 {
 	Super::BeginPlay();
-
-	FScriptDelegate ScriptDelegate;
-	ScriptDelegate.BindUFunction(this, "OnBulletHit");
-
+	
 	TArray<AActor*> FoundPool;
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Pool"), FoundPool);
 
@@ -46,47 +43,106 @@ void ABullet::BeginPlay()
 	{
 		pool = Cast<ABulletPool>(FoundPool[0]);
 	}
-    
-	if(ScriptDelegate.IsBound())
-	{
-		BulletMesh->OnComponentHit.Add(ScriptDelegate);
+	
+	ScriptDelegate.BindUFunction(this, "OnBulletHit");
 
-		//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Red, BulletMesh->OnComponentHit.Contains(ScriptDelegate) ? "true" : "false");
-	}
 }
 
 void ABullet::OnBulletHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if(OtherActor && OtherActor->ActorHasTag(FName("Enemy")))
-	{
-		SetActorLocation(StartLocation);
-		BulletMesh->BodyInstance.SetInstanceSimulatePhysics(false);
-		BulletMesh->ComponentVelocity = FVector::ZeroVector;
-		
-		OnBulletHitDelegate.Broadcast(this);
-		pool->PutObjectBack("Bullet", this);
-	}
+	pool->PutObjectBack("Bullet", this);
+	BulletMesh->BodyInstance.SetInstanceSimulatePhysics(false);
+	BulletMesh->ComponentVelocity = FVector::ZeroVector;
+	UnregisterFromCollision();
+	SetActorLocation(StartLocation);
 }
 
 void ABullet::OnSpawnedFromPool(AActor* Requestee)
 {
 	if(ATowerBaseClass* Tower = Cast<ATowerBaseClass>(Requestee))
 	{
-		FVector direction = Tower->GetLockedEnemy()->GetActorLocation() - GetActorLocation();
+		BulletMesh->BodyInstance.SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+		FVector BulletPosition = GetActorLocation();
+		FVector EnemyPosition = Tower->GetLockedEnemy()->GetActorLocation() + FVector(0, 0, 50);
+		FVector EnemyVelocity = Tower->GetLockedEnemy()->GetVelocity();
+
+		FVector DeltaPosition = EnemyPosition - BulletPosition;
+
+		
+		float a = FVector::DotProduct(EnemyVelocity, EnemyVelocity) - bulletSpeed * bulletSpeed;
+		float b = 2.0f * FVector::DotProduct(DeltaPosition, EnemyVelocity);
+		float c = FVector::DotProduct(DeltaPosition, DeltaPosition);
+		
+		float Discriminant = b * b - 4.0f * a * c;
+		if (Discriminant < 0) {
+			// No real solution, bullet can't reach the target
+			return;
+		}
+
+		float SqrtDiscriminant = FMath::Sqrt(Discriminant);
+		float t1 = (-b + SqrtDiscriminant) / (2.0f * a);
+		float t2 = (-b - SqrtDiscriminant) / (2.0f * a);
+
+		float TimeToHit = (t1 > 0 && (t1 < t2 || t2 <= 0)) ? t1 : (t2 > 0 ? t2 : -1.0f);
+		if (TimeToHit < 0) {
+			// No positive solution, bullet can't reach the target
+			return;
+		}
+
+		FVector PredictedEnemyPosition = EnemyPosition + EnemyVelocity * TimeToHit;
+
+		FVector ShootingDirection = (PredictedEnemyPosition - BulletPosition).GetSafeNormal();
+
+		FVector Velocity = ShootingDirection * bulletSpeed;
+		BulletMesh->SetSimulatePhysics(true);
+		BulletMesh->SetPhysicsLinearVelocity(Velocity);
+		
+		/*FVector direction = Tower->GetLockedEnemy()->GetActorLocation() - GetActorLocation();
 		direction.Normalize();
         
 		FVector Velocity = direction * bulletVelocity;
 
 		BulletMesh->SetSimulatePhysics(true);
-		BulletMesh->SetPhysicsLinearVelocity(Velocity);
+		BulletMesh->SetPhysicsLinearVelocity(Velocity);*/
+
+		RegisterToCollision();
 	}
+}
+
+void ABullet::RegisterToCollision() const
+{
+	if(ScriptDelegate.IsBound())
+	{
+		BulletMesh->OnComponentHit.AddUnique(ScriptDelegate);
+
+		//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Red, BulletMesh->OnComponentHit.Contains(ScriptDelegate) ? "true" : "false");
+	}
+}
+
+void ABullet::UnregisterFromCollision() const
+{
+	if(ScriptDelegate.IsBound())
+	{
+		BulletMesh->OnComponentHit.Remove(ScriptDelegate);
+
+		//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Red, BulletMesh->OnComponentHit.Contains(ScriptDelegate) ? "true" : "false");
+	}
+}
+
+void ABullet::SetDamage(float TowerDamage)
+{
+	damage = TowerDamage;
+}
+
+float ABullet::GetDamage()
+{
+	return damage;
 }
 
 // Called every frame
 void ABullet::Tick(float DeltaTime)
 {
-	Super::Tick(DeltaTime);
-
-	
+	Super::Tick(DeltaTime);	
 }
+
 

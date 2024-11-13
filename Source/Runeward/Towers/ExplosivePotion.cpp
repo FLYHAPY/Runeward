@@ -2,9 +2,12 @@
 
 
 #include "ExplosivePotion.h"
+
+#include "BulletPool.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/Actor.h"
+#include "Kismet/GameplayStatics.h"
 #include "Runeward/EnemyBase.h"
 
 // Sets default values
@@ -23,7 +26,7 @@ AExplosivePotion::AExplosivePotion()
 	AOESphere->SetSphereRadius(range);
 
 	
-	ExplosivePotionMesh->SetSimulatePhysics(true);
+	ExplosivePotionMesh->SetSimulatePhysics(false);
 }
 
 // Called when the game starts or when spawned
@@ -31,22 +34,11 @@ AExplosivePotion::AExplosivePotion()
 void AExplosivePotion::BeginPlay()
 {
 	Super::BeginPlay();
-
-	FScriptDelegate ScriptDelegate1;
+	
 	ScriptDelegate1.BindUFunction(this, "DetectEnemy");
-	// ExplosivePotionMesh->OnComponentHit.Add(ScriptDelegate1);
 
-
-	if(ScriptDelegate1.IsBound())
-	{
-		if(ExplosivePotionMesh)
-		{
-			ExplosivePotionMesh->OnComponentHit.AddUnique(ScriptDelegate1);
-		}else
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Red, ExplosivePotionMesh->OnComponentHit.Contains(ScriptDelegate1) ? "true" : "false");
-		}
-	}
+	pool = Cast<ABulletPool>(UGameplayStatics::GetActorOfClass(GetWorld(), ABulletPool::StaticClass()));
+	
 }
 #pragma optimize("", on)
 
@@ -73,10 +65,13 @@ void AExplosivePotion::Explode()
 	{
 		if(AEnemyBase* enemy = Cast<AEnemyBase>(OverlappingActors[i]))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Dealt damage to: %s"), *OverlappingActors[i]->GetName());
+			enemy->SetCurrentHealth(damage);
 		}
 	}
-	Destroy();
+
+	pool->PutObjectBack("ExplosivePotion", this);
+	SetActorLocation(FVector(0,0,0));
+	UnregisterFromCollision();
 }
 
 void AExplosivePotion::DetectEnemy(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
@@ -85,5 +80,31 @@ void AExplosivePotion::DetectEnemy(UPrimitiveComponent* HitComp, AActor* OtherAc
 	{
 		Explode();
 	}
+}
+
+void AExplosivePotion::RegisterToCollision() const
+{
+	if(ScriptDelegate1.IsBound())
+	{
+		ExplosivePotionMesh->OnComponentHit.AddUnique(ScriptDelegate1);
+		ExplosivePotionMesh->BodyInstance.SetInstanceSimulatePhysics(false);
+		//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Red, BulletMesh->OnComponentHit.Contains(ScriptDelegate) ? "true" : "false");
+	}
+}
+
+void AExplosivePotion::UnregisterFromCollision() const
+{
+	if(ScriptDelegate1.IsBound())
+	{
+		ExplosivePotionMesh->BodyInstance.SetInstanceSimulatePhysics(false);
+		ExplosivePotionMesh->OnComponentHit.Remove(ScriptDelegate1);
+
+		//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Red, BulletMesh->OnComponentHit.Contains(ScriptDelegate) ? "true" : "false");
+	}
+}
+
+void AExplosivePotion::OnSpawnedFromPool(AActor* Requestee)
+{
+	RegisterToCollision();
 }
 
