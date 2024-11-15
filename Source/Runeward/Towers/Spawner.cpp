@@ -14,10 +14,11 @@ ASpawner::ASpawner()
 	waveCounter = 0;
 	pool = nullptr;
 	finishedWave = true;
-	timeBetweenWaves = 0;
+	timeBetweenWaves = 11;
 	amountOfEnemiesToSpawn = 10;
 	enemiesSpawned = 0;
-	WavesCooldown = 10;
+	WavesCooldown = 11;
+	stop = false;
 
 }
 
@@ -39,28 +40,56 @@ void ASpawner::BeginPlay()
 void ASpawner::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	//GEngine->AddOnScreenDebugMessage(1, 0, FColor::Red, "Time Between Waves = " + FString::SanitizeFloat(timeBetweenWaves, 2));
 
 	if(finishedWave == true)
 	{
-		timeBetweenWaves += DeltaTime;
+		timeBetweenWaves -= DeltaTime;
 	}
-	IntervalBetweenWaves(DeltaTime);
+	
+	if(finishedWave == false && stop == false)
+	{
+		warningStop = warningStop +	DeltaTime;	
+	}
+	
+
+	if(warningStop >= 2)
+	{
+		stop = true;
+	}
+
+	IntervalBetweenWaves();
 }
 
-void ASpawner::IntervalBetweenWaves(float DeltaTime)
+void ASpawner::IntervalBetweenWaves()
 {
-	if(finishedWave == true)
+	if(timeBetweenWaves <= 0)
 	{
-		timeBetweenWaves += DeltaTime;
-	}
-
-	if(timeBetweenWaves >= WavesCooldown)
-	{
-		timeBetweenWaves = 0;
+		timeBetweenWaves = WavesCooldown;
 		finishedWave = false;
 		StartWave();
 	}
+}
+
+int ASpawner::ReturnWaveCounter()
+{
+	return waveCounter;
+}
+
+FString ASpawner::ReturnWaveState()
+{
+	if(finishedWave == true)
+	{
+		return FString::FromInt(timeBetweenWaves);
+	}
+	else if(finishedWave == false && stop == false)
+	{
+		return "Wave Started";
+	}
+	else if(finishedWave == false && stop == true)
+	{
+		return "";
+	}
+	return "";
 }
 
 void ASpawner::StartWave()
@@ -88,6 +117,7 @@ void ASpawner::SpawnEnemies()
 
 	if(enemiesSpawned >= amountOfEnemiesToSpawn)
 	{
+		stop = false;
 		enemiesSpawned = 0;	
 		finishedWave = true;
 		GetWorldTimerManager().ClearTimer(timer);

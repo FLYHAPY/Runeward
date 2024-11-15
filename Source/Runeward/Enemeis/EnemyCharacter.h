@@ -3,11 +3,12 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Components/BoxComponent.h"
-#include "ARuneTower.h"
+#include "Runeward/Towers/MainTower.h"
+#include "Runeward/Towers/PoolSpawnable.h"
 #include "EnemyCharacter.generated.h"
 
 UCLASS()
-class AEnemyCharacter : public ACharacter
+class AEnemyCharacter : public ACharacter, public IPoolSpawnable
 {
 	GENERATED_BODY()
 
@@ -37,7 +38,18 @@ public:
 	void ApplyDamageToPlayer();
 
 	// Function to apply damage to the tower
-	void ApplyDamageToTower(AARuneTower* Tower);
+	void ApplyDamageToTower(AMainTower* Tower);
+	
+	UFUNCTION()
+	void OnBulletHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	UFUNCTION()
+	void SetCurrentHealth(float damage);
+
+	virtual void OnSpawnedFromPool(AActor* Requestee) override;
+
+	void RegisterToCollision() const;
+	void UnregisterFromCollision() const;
 
 private:
 	// Collision box for the enemy's "sword"
@@ -49,4 +61,15 @@ private:
 	bool bIsPlayerInAttackRange;
 	FTimerHandle AttackCooldownTimer;
 	float AttackCooldown;
+
+	UPROPERTY(VisibleAnywhere, Category="Stats")
+	float Health;
+
+	UPROPERTY(VisibleAnywhere, Category="Stats")
+	float maxHeath;
+
+	FScriptDelegate ScriptDelegate;
+
+	UPROPERTY(EditAnywhere, Category="Refrecens")
+	class ABulletPool* pool;
 };

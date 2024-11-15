@@ -287,5 +287,6 @@ FName ARunewardCharacter::ReturnIndex()
 
 void ARunewardCharacter::TakeDamage(float damage)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Yes"));
 	health -= damage;
 }

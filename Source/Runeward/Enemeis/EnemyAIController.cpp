@@ -3,6 +3,7 @@
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 #include "ARuneTower.h" // Include the tower class
+#include "Runeward/Towers/MainTower.h"
 
 void AEnemyAIController::BeginPlay()
 {
@@ -12,7 +13,7 @@ void AEnemyAIController::BeginPlay()
 	PlayerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
 
 	// Searches for the RuneTower in the level
-	RuneTower = UGameplayStatics::GetActorOfClass(GetWorld(), AARuneTower::StaticClass());
+	RuneTower = UGameplayStatics::GetActorOfClass(GetWorld(), AMainTower::StaticClass());
 
 	// Starts moving to the initial target (RuneTower or Player)
 	MoveToRuneTower();

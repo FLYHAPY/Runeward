@@ -56,13 +56,7 @@ void AEnemyBase::OnBulletHit(UPrimitiveComponent* HitComp, AActor* OtherActor, U
 	{
 		if(ABullet* myBullet = Cast<ABullet>(OtherActor))
 		{
-			Health -= myBullet->GetDamage();
-			if(Health <= 0)
-			{
-				SetActorLocation(FVector(0, 0, 0));
-				pool->PutObjectBack("Enemy", this);
-				UnregisterFromCollision();
-			}
+			SetCurrentHealth(myBullet->GetDamage());
 		}
 	}
 }

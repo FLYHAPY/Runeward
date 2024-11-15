@@ -21,9 +21,16 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category="Components")
 	class UStaticMeshComponent* MainToweMesh;
+	
+
+	UPROPERTY(EditAnywhere, Category = "Tower")
+	float Health = 100.0f;
 
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	// Function to apply damage to the tower
+	void TakeDamage(float DamageAmount);
 
 };

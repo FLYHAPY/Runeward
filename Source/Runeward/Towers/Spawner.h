@@ -37,6 +37,10 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Refrecens")
 	class ABulletPool* pool;
 
+	float warningStop;
+
+	bool stop;
+
 	UPROPERTY()
 	FTimerHandle timer;
 
@@ -59,6 +63,12 @@ public:
 	void SpawnEnemies();
 
 	UFUNCTION()
-	void IntervalBetweenWaves(float DeltaTime);
+	void IntervalBetweenWaves();
+
+	UFUNCTION(BlueprintPure, Category = Functions)
+	int ReturnWaveCounter();
+
+	UFUNCTION(BlueprintPure, Category = Functions)
+	FString ReturnWaveState();
 
 };
