@@ -29,5 +29,6 @@ private:
 
 	// Detection distance for the player
 	UPROPERTY(EditAnywhere, Category="AI")
-	float DetectionRadius = 1200.0f; 
+	float DetectionRadius = 1200.0f;
+	virtual void OnPossess(APawn* InPawn) override;
 };

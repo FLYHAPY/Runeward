@@ -14,10 +14,16 @@ void AEnemyAIController::BeginPlay()
 
 	// Searches for the RuneTower in the level
 	RuneTower = UGameplayStatics::GetActorOfClass(GetWorld(), AMainTower::StaticClass());
+}
 
-	// Starts moving to the initial target (RuneTower or Player)
+void AEnemyAIController::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+
+	// Start moving to the initial target (RuneTower or Player) only after possession
 	MoveToRuneTower();
 }
+
 
 void AEnemyAIController::MoveToPlayer()
 {

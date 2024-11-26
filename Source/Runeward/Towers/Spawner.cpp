@@ -5,6 +5,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "BulletPool.h"
 #include "PoolSpawnable.h"
+#include "Components/CapsuleComponent.h"
+#include "Runeward/RunewardCharacter.h"
 
 // Sets default values
 ASpawner::ASpawner()
@@ -19,6 +21,7 @@ ASpawner::ASpawner()
 	enemiesSpawned = 0;
 	WavesCooldown = 11;
 	stop = false;
+	warningStop = 0;
 
 }
 
@@ -29,6 +32,8 @@ void ASpawner::BeginPlay()
 
 	TArray<AActor*> FoundPool;
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Pool"), FoundPool);
+
+	player = Cast<ARunewardCharacter>(UGameplayStatics::GetActorOfClass(GetWorld(), ARunewardCharacter::StaticClass()));
 
 	if(FoundPool.Num() >= 1)
 	{
@@ -54,6 +59,7 @@ void ASpawner::Tick(float DeltaTime)
 
 	if(warningStop >= 2)
 	{
+		warningStop = 0;
 		stop = true;
 	}
 
@@ -100,8 +106,21 @@ void ASpawner::StartWave()
 
 void ASpawner::SpawnEnemies()
 {
+
+	if(enemiesSpawned >= amountOfEnemiesToSpawn)
+	{
+		GetWorldTimerManager().ClearTimer(timer);
+		return;
+	}
+	
 	enemiesSpawned++;
 	AActor* enemy = pool->TakeObjectOut("Enemy");
+
+	if(AEnemyCharacter* enemySpawned = Cast<AEnemyCharacter>(enemy))
+	{
+		ListOfEnemiesSpawned.Add(enemySpawned);
+		enemySpawned->Delegate.AddDynamic(this, &ASpawner::FinishWave);
+	}
 
 	if(!enemy)
 	{
@@ -114,13 +133,20 @@ void ASpawner::SpawnEnemies()
 	{
 		Spawnable->OnSpawnedFromPool(this);
 	}
+}
 
-	if(enemiesSpawned >= amountOfEnemiesToSpawn)
+void ASpawner::FinishWave(AEnemyCharacter* enemyToRemove)
+{
+	ListOfEnemiesSpawned.Remove(enemyToRemove);
+	UE_LOG(LogTemp, Log, TEXT("CannonMesh killed: %s"), *enemyToRemove->GetName());
+	player->getCoins(enemyToRemove->GiveCoins());
+	if(enemiesSpawned >= amountOfEnemiesToSpawn && ListOfEnemiesSpawned.Num() <=0)
 	{
+		enemyToRemove->Delegate.RemoveDynamic(this, &ASpawner::FinishWave);
 		stop = false;
 		enemiesSpawned = 0;	
 		finishedWave = true;
-		GetWorldTimerManager().ClearTimer(timer);
 	}
 }
+
 

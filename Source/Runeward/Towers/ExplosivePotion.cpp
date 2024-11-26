@@ -9,6 +9,7 @@
 #include "GameFramework/Actor.h"
 #include "Kismet/GameplayStatics.h"
 #include "Runeward/EnemyBase.h"
+#include "Runeward/Enemeis/EnemyCharacter.h"
 
 // Sets default values
 AExplosivePotion::AExplosivePotion()
@@ -16,11 +17,12 @@ AExplosivePotion::AExplosivePotion()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	ExplosivePotionMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ExplosiveMesh"));
-	RootComponent = ExplosivePotionMesh;
-
 	AOESphere = CreateDefaultSubobject<USphereComponent>(TEXT("AOESphere"));
-	AOESphere->SetupAttachment(RootComponent);
+	RootComponent = AOESphere;
+
+	ExplosivePotionMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ExplosiveMesh"));
+	ExplosivePotionMesh->SetupAttachment(RootComponent);
+	
 
 	int range = 1000.0f;
 	AOESphere->SetSphereRadius(range);
@@ -63,7 +65,7 @@ void AExplosivePotion::Explode()
 
 	for (int i = 0; i < OverlappingActors.Num(); i++)
 	{
-		if(AEnemyBase* enemy = Cast<AEnemyBase>(OverlappingActors[i]))
+		if(AEnemyCharacter* enemy = Cast<AEnemyCharacter>(OverlappingActors[i]))
 		{
 			enemy->SetCurrentHealth(damage);
 		}

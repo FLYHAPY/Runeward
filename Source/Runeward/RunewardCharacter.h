@@ -54,10 +54,12 @@ class ARunewardCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* KeyEPressed;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* AttackPressed;
+
 public:
 	ARunewardCharacter();
 	
-
 protected:
 
 	/** Called for movement input */
@@ -71,18 +73,40 @@ protected:
 
 	int index = 0;
 
+	UPROPERTY(EditAnywhere, Category="stats")
 	float health;
+
+	UPROPERTY(EditAnywhere, Category="stats")
+	float maxHealth;
+
+	UPROPERTY(EditAnywhere, Category="stats")
+	float attackColdown;
+
+	UPROPERTY(VisibleAnywhere, Category="Stats")
+	FTimerHandle attackCooldownTimer;
 
 	UPROPERTY(EditAnywhere, Category="Refrecens")
 	TArray <FName> TowerToSpawn;
-			
 
+	UPROPERTY(EditAnywhere, Category="state")
+	bool isAttacking;
+
+	FScriptDelegate ScriptDelegate4;
+
+	UPROPERTY(EditAnywhere, Category="Points")
+	int coins;
+
+	UPROPERTY(EditAnywhere, Category="Points")
+	int necessaryCoins;
+
+	UPROPERTY()
+	UStaticMeshComponent* weaponMesh;
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
 	// To add mapping context
-	virtual void BeginPlay();
+	virtual void BeginPlay() override;
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<AActor> Cannon;
@@ -106,6 +130,27 @@ public:
 	FName ReturnIndex();
 
 	UFUNCTION(BlueprintCallable, Category = Functions)
-	void TakeDamage(float damage);
+	void TakeDamage1(float damage);
+
+	UFUNCTION(BlueprintPure, Category = Functions)
+	float ReturnNormalizedHealth();
+
+	UFUNCTION(BlueprintPure, Category = Functions)
+	bool ReturnIsAttacking();
+
+	UFUNCTION(BlueprintCallable, Category = Functions)
+	void OnAttack();
+
+	UFUNCTION(BlueprintCallable, Category = Functions)
+	void ResetAttack();
+
+	UFUNCTION()
+	void OnPlayerSwordHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	UFUNCTION(BlueprintPure, Category = Functions)
+	int returnCoins();
+
+	UFUNCTION()
+	void getCoins(int enemyCoins);
 };
 

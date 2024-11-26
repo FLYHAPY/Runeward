@@ -77,4 +77,7 @@ public:
 
 	float GetDamage();
 
+	UFUNCTION()
+	float GetBulletSpeed();
+
 };

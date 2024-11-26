@@ -24,7 +24,8 @@ protected:
 	
 
 	UPROPERTY(EditAnywhere, Category = "Tower")
-	float Health = 100.0f;
+	float Health = 0.0f;
+	float maxHealth = 100.0f;
 
 public:	
 	// Called every frame
@@ -32,5 +33,9 @@ public:
 
 	// Function to apply damage to the tower
 	void TakeDamage(float DamageAmount);
+
+	UFUNCTION(BlueprintPure)
+	float ReturnHealth();
+	
 
 };

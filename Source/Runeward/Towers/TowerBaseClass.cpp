@@ -12,6 +12,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/Actor.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
 ATowerBaseClass::ATowerBaseClass()
@@ -21,6 +22,9 @@ ATowerBaseClass::ATowerBaseClass()
 
 	TowerMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TowerMesh"));
 	RootComponent = TowerMesh;
+
+	firePosition = CreateDefaultSubobject<USceneComponent>(TEXT("MySceneComponent"));
+	firePosition->SetupAttachment(TowerMesh);
 	
 	RangeSphere = CreateDefaultSubobject<USphereComponent>(TEXT("RangeSphere"));
 	RangeSphere->SetupAttachment(RootComponent);
@@ -70,6 +74,11 @@ void ATowerBaseClass::Tick(float DeltaTime)
 		{
 			Shoot();
 		}	
+	}
+
+	if(myBulletSpeed != 0 && lockedEnemy)
+	{
+		RotateCannonTowardsEnemy(myBulletSpeed);
 	}
 }
 
@@ -122,11 +131,19 @@ void ATowerBaseClass::Shoot()
 	}*/
 	
 		
-	bullet->SetActorLocation(GetActorLocation() + FVector(0, 0, 200), false, nullptr, ETeleportType::ResetPhysics);
+	bullet->SetActorLocation(firePosition->GetComponentLocation(), false, nullptr, ETeleportType::ResetPhysics);
 
 	if(ABullet* myBullet = Cast<ABullet>(bullet))
 	{
 		myBullet->SetDamage(damage);
+	}
+
+	if(myBulletSpeed == 0)
+	{
+		if(ABullet* myBullet = Cast<ABullet>(bullet))
+		{
+			myBulletSpeed = myBullet->GetBulletSpeed();
+		}
 	}
 
 	if(IPoolSpawnable* Spawnable = Cast<IPoolSpawnable>(bullet))
@@ -247,5 +264,37 @@ void ATowerBaseClass::Sort()
 AActor* ATowerBaseClass::GetLockedEnemy()
 {
 	return lockedEnemy;
+}
+
+
+void ATowerBaseClass::RotateCannonTowardsEnemy(float BulletSpeed)
+{
+	
+	// Calculate the predicted position
+	FVector PredictedPosition = PredictEnemyPosition(BulletSpeed);
+
+	FRotator DesiredRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), PredictedPosition);
+
+	// Constrain rotation to specific axes if needed (e.g., only Yaw)
+	DesiredRotation.Pitch = FMath::Clamp(0, -10.0f, 45.0f); // Example: Clamp pitch for cannon elevation
+
+	// Adjust for initial offset
+	FRotator InitialRotationOffset = FRotator(0, 90.0f, 0); // Adjust this based on the initial setup
+	DesiredRotation -= InitialRotationOffset;
+
+	// Interpolate and apply
+	FRotator NewRotation = FMath::RInterpTo(TowerMesh->GetRelativeRotation(), DesiredRotation, GetWorld()->DeltaTimeSeconds, 5.0f);
+	TowerMesh->SetRelativeRotation(NewRotation);
+}
+
+FVector ATowerBaseClass::PredictEnemyPosition(float BulletSpeed)
+{
+	FVector DirectionToEnemy = lockedEnemy->GetActorLocation() - GetActorLocation();
+	float DistanceToEnemy = DirectionToEnemy.Size();
+	float TimeToImpact = DistanceToEnemy / BulletSpeed;
+
+	// Predict the enemy's position based on its velocity and time to impact
+	FVector PredictedPosition = lockedEnemy->GetActorLocation() + (lockedEnemy->GetVelocity() * TimeToImpact);
+	return PredictedPosition;
 }
 

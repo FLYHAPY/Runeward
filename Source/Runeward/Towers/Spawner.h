@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Runeward/Enemeis/EnemyCharacter.h"
 #include "Spawner.generated.h"
 
 UCLASS()
@@ -37,6 +38,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Refrecens")
 	class ABulletPool* pool;
 
+	UPROPERTY(EditAnywhere, Category="Refrecens")
+	class ARunewardCharacter* player;
+
 	float warningStop;
 
 	bool stop;
@@ -49,6 +53,9 @@ protected:
 
 	bool finishedWave;
 
+	UPROPERTY(EditAnywhere, Category="Waves")
+	TArray <AEnemyCharacter*> ListOfEnemiesSpawned;
+
 	
 	
 
@@ -58,6 +65,9 @@ public:
 
 	UFUNCTION()
 	void StartWave();
+
+	UFUNCTION()
+	void FinishWave(AEnemyCharacter* enemyToRemove);
 
 	UFUNCTION()
 	void SpawnEnemies();

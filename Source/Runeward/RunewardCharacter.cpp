@@ -1,6 +1,8 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "RunewardCharacter.h"
+
+
 #include "Engine/LocalPlayer.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -14,6 +16,7 @@
 #include "Towers/BulletPool.h"
 #include "Towers/PoolSpawnable.h"
 #include "DrawDebugHelpers.h"  // Required for debug drawing functions
+#include "Enemeis/EnemyCharacter.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -22,7 +25,6 @@ DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 ARunewardCharacter::ARunewardCharacter()
 {
-	Tags.Add(FName("Player"));
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 		
@@ -58,7 +60,14 @@ ARunewardCharacter::ARunewardCharacter()
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 
-	health = 100;
+	maxHealth = 100;
+	health = maxHealth;
+
+	isAttacking = false;
+
+	attackColdown = 1.5f;
+
+	coins = 0;
 }
 
 void ARunewardCharacter::BeginPlay()
@@ -69,9 +78,16 @@ void ARunewardCharacter::BeginPlay()
 	TArray<AActor*> FoundPool;
 	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("Pool"), FoundPool);
 
+	ScriptDelegate4.BindUFunction(this, "OnPlayerSwordHit");
+
 	if(FoundPool.Num() >= 1)
 	{
 		pool = Cast<ABulletPool>(FoundPool[0]);
+	}
+
+	if (UStaticMeshComponent* FoundWeaponMesh = Cast<UStaticMeshComponent>(FindComponentByTag(UStaticMeshComponent::StaticClass(), FName("Weapon"))))
+	{
+		weaponMesh = FoundWeaponMesh;
 	}
 }
 
@@ -81,6 +97,19 @@ void ARunewardCharacter::SpawnCannon()
 	{
 		return;
 	}
+
+	switch (index)
+	{
+		case 0:
+			necessaryCoins = 5;
+		case 1:
+			necessaryCoins = 10;
+	}
+
+	if(necessaryCoins > coins)
+		return;
+	else
+		coins -= necessaryCoins;
 
 	// Variables
 	float TraceRadius = 100.0f;
@@ -181,6 +210,43 @@ void ARunewardCharacter::SpawnCannon()
 	*/
 }
 
+void ARunewardCharacter::OnAttack()
+{
+	if(!isAttacking)
+	{
+		isAttacking = true;
+		weaponMesh->OnComponentHit.Add(ScriptDelegate4);
+	}
+}
+
+void ARunewardCharacter::ResetAttack()
+{
+	isAttacking = false;
+	weaponMesh->OnComponentHit.Remove(ScriptDelegate4);
+}
+
+void ARunewardCharacter::OnPlayerSwordHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	UE_LOG(LogTemp, Warning, TEXT("OnPlayerSwordHit %s"), *OtherActor->GetName());
+	if(OtherActor && OtherActor->ActorHasTag("Enemy") && isAttacking)
+	{
+		if(AEnemyCharacter* enemy = Cast<AEnemyCharacter>(OtherActor))
+		{
+			enemy->SetCurrentHealth(50);
+		}
+	}
+}
+
+int ARunewardCharacter::returnCoins()
+{
+	return coins;
+}
+
+void ARunewardCharacter::getCoins(int enemyCoins)
+{
+	coins += enemyCoins;
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 // Input
@@ -215,6 +281,8 @@ void ARunewardCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		EnhancedInputComponent->BindAction(KeyQPressed, ETriggerEvent::Started, this, &ARunewardCharacter::OnQKeyPressed);
 
 		EnhancedInputComponent->BindAction(KeyEPressed, ETriggerEvent::Started, this, &ARunewardCharacter::OnEKeyPressed);
+
+		EnhancedInputComponent->BindAction(AttackPressed, ETriggerEvent::Started, this, &ARunewardCharacter::OnAttack);
 	}
 	else
 	{
@@ -285,8 +353,24 @@ FName ARunewardCharacter::ReturnIndex()
 	return TowerToSpawn[index];
 }
 
-void ARunewardCharacter::TakeDamage(float damage)
+void ARunewardCharacter::TakeDamage1(float damage)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Yes"));
+	UE_LOG(LogTemp, Warning, TEXT("Socket found: %f"), health);
 	health -= damage;
+
+	if(health <= 0)
+	{
+		FName NextLevelName = "GameOver";
+		UGameplayStatics::OpenLevel(GetWorld(), NextLevelName);
+	}
+}
+
+float ARunewardCharacter::ReturnNormalizedHealth()
+{
+	return health / maxHealth;
+}
+
+bool ARunewardCharacter::ReturnIsAttacking()
+{
+	return isAttacking;
 }

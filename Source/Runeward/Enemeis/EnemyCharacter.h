@@ -7,6 +7,8 @@
 #include "Runeward/Towers/PoolSpawnable.h"
 #include "EnemyCharacter.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FDelegate,  AEnemyCharacter*, Enemy);
+
 UCLASS()
 class AEnemyCharacter : public ACharacter, public IPoolSpawnable
 {
@@ -39,9 +41,6 @@ public:
 
 	// Function to apply damage to the tower
 	void ApplyDamageToTower(AMainTower* Tower);
-	
-	UFUNCTION()
-	void OnBulletHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 	UFUNCTION()
 	void SetCurrentHealth(float damage);
@@ -51,16 +50,42 @@ public:
 	void RegisterToCollision() const;
 	void UnregisterFromCollision() const;
 
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FDelegate Delegate;
+
+	UFUNCTION()
+	int GiveCoins();
+	
+	UFUNCTION(BlueprintCallable, Category = "MyBlueprintCategory")
+	bool isEnemyAttacking();
+
 private:
 	// Collision box for the enemy's "sword"
 	UPROPERTY(VisibleAnywhere, Category = "Attack")
 	UBoxComponent* SwordCollisionBox;
 
 	// Attack and cooldown control
+	UPROPERTY(VisibleAnywhere, Category="Stats")
 	bool bCanAttack;
+	UPROPERTY(VisibleAnywhere, Category="Stats")
 	bool bIsPlayerInAttackRange;
+	UPROPERTY(VisibleAnywhere, Category="Stats")
+	bool bIsRuneTowerInRange;
+	UPROPERTY(VisibleAnywhere, Category="Stats")
 	FTimerHandle AttackCooldownTimer;
+	UPROPERTY(VisibleAnywhere, Category="Stats")
 	float AttackCooldown;
+
+	UPROPERTY(VisibleAnywhere, Category="Stats")	
+	bool appliedDamage;
+
+	AMainTower* RuneTower;
+
+	int coins;
+
+	// Tower mesh
+	UPROPERTY(VisibleAnywhere, Category="Components")
+	class UStaticMeshComponent* Sword;
 
 	UPROPERTY(VisibleAnywhere, Category="Stats")
 	float Health;
@@ -72,4 +97,15 @@ private:
 
 	UPROPERTY(EditAnywhere, Category="Refrecens")
 	class ABulletPool* pool;
+
+	UPROPERTY(VisibleAnywhere, Category="Stats")
+	bool isAttacking;
+
+	FScriptDelegate swordScriptDelegate;
+
+	UPROPERTY(VisibleAnywhere, Category="Components")
+	class UStaticMeshComponent* swordMesh;
+
+	UFUNCTION()
+	void OnSwordHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 };

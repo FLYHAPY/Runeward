@@ -64,6 +64,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Refrecens")
 	AActor* MainTower;
 
+	float myBulletSpeed;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	USceneComponent* firePosition;
+
 
 public:	
 	// Called every frame
@@ -94,4 +99,9 @@ public:
 
 	UFUNCTION()
 	void IsLockedEnemyInsideRadius();
+
+	UFUNCTION()
+	FVector PredictEnemyPosition(float BulletSpeed);
+
+	void RotateCannonTowardsEnemy(float BulletSpeed);
 };

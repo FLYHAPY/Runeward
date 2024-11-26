@@ -3,6 +3,8 @@
 
 #include "MainTower.h"
 
+#include "Kismet/GameplayStatics.h"
+
 // Sets default values
 AMainTower::AMainTower()
 {
@@ -11,6 +13,9 @@ AMainTower::AMainTower()
 
 	MainToweMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TowerMesh"));
 	RootComponent = MainToweMesh;
+
+	maxHealth = 100;
+	Health = maxHealth;
 
 }
 
@@ -37,7 +42,13 @@ void AMainTower::TakeDamage(float DamageAmount)
 	}
 	if (Health <= 0.0f)
 	{
-		Destroy();
+		FName NextLevelName = "GameOver";
+		UGameplayStatics::OpenLevel(GetWorld(), NextLevelName);
 	}
+}
+
+float AMainTower::ReturnHealth()
+{
+	return Health /maxHealth;
 }
 

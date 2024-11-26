@@ -8,6 +8,7 @@
 #include "TowerBaseClass.h"
 #include "GameFramework/Actor.h"
 #include "Kismet/GameplayStatics.h"
+#include "Runeward/Enemeis/EnemyCharacter.h"
 
 // Sets default values
 ABullet::ABullet()
@@ -55,6 +56,12 @@ void ABullet::OnBulletHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPri
 	BulletMesh->ComponentVelocity = FVector::ZeroVector;
 	UnregisterFromCollision();
 	SetActorLocation(StartLocation);
+
+	if(AEnemyCharacter* enemy = Cast<AEnemyCharacter>(OtherActor))
+	{
+		enemy->SetCurrentHealth(damage);
+	}
+	
 }
 
 void ABullet::OnSpawnedFromPool(AActor* Requestee)
@@ -137,6 +144,11 @@ void ABullet::SetDamage(float TowerDamage)
 float ABullet::GetDamage()
 {
 	return damage;
+}
+
+float ABullet::GetBulletSpeed()
+{
+	return bulletSpeed;
 }
 
 // Called every frame
