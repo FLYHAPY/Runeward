@@ -3,10 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "MyGameStateBase.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/GameState.h"
 #include "Logging/LogMacros.h"
 #include "RunewardCharacter.generated.h"
 
+class AGameState;
 class USpringArmComponent;
 class UCameraComponent;
 class UInputMappingContext;
@@ -88,16 +91,16 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Refrecens")
 	TArray <FName> TowerToSpawn;
 
-	UPROPERTY(EditAnywhere, Category="state")
+	UPROPERTY(EditAnywhere, Category="Refrecens")
+	AMyGameStateBase* GameState;
+
+	UPROPERTY(Replicated)
 	bool isAttacking;
 
 	FScriptDelegate ScriptDelegate4;
 
 	UPROPERTY(EditAnywhere, Category="Points")
-	int coins;
-
-	UPROPERTY(EditAnywhere, Category="Points")
-	int necessaryCoins;
+	float necessaryCoins;
 
 	UPROPERTY()
 	UStaticMeshComponent* weaponMesh;
@@ -112,6 +115,8 @@ protected:
 	TSubclassOf<AActor> Cannon;
 
 public:
+
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
@@ -147,10 +152,10 @@ public:
 	UFUNCTION()
 	void OnPlayerSwordHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
-	UFUNCTION(BlueprintPure, Category = Functions)
-	int returnCoins();
+	UFUNCTION(Server, Reliable)
+	void Server_DealDamageTOEnemy(AEnemyCharacter* enemy);
 
-	UFUNCTION()
-	void getCoins(int enemyCoins);
+	UFUNCTION(Server, Reliable)
+	void Server_SpawnTowerOnServer(FVector SpawnLocation, FName TowerToSpawnFname);
 };
 

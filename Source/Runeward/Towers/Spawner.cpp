@@ -5,7 +5,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "BulletPool.h"
 #include "PoolSpawnable.h"
-#include "Components/CapsuleComponent.h"
+#include "Net/UnrealNetwork.h"
+#include "Runeward/MyGameStateBase.h"
 #include "Runeward/RunewardCharacter.h"
 
 // Sets default values
@@ -22,6 +23,7 @@ ASpawner::ASpawner()
 	WavesCooldown = 11;
 	stop = false;
 	warningStop = 0;
+	bReplicates = true;
 
 }
 
@@ -39,12 +41,33 @@ void ASpawner::BeginPlay()
 	{
 		pool = Cast<ABulletPool>(FoundPool[0]);
 	}
+
+	if(AMyGameStateBase* GameStateBase = Cast<AMyGameStateBase>(GetWorld()->GetGameState()))
+	{
+		GameState = GameStateBase;
+	}
+}
+
+void ASpawner::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ASpawner, waveCounter);
+	DOREPLIFETIME(ASpawner, finishedWave);
+	DOREPLIFETIME(ASpawner, enemiesSpawned);
+	DOREPLIFETIME(ASpawner, timeBetweenWaves);
+	DOREPLIFETIME(ASpawner, stop);
 }
 
 // Called every frame
 void ASpawner::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (!HasAuthority())
+	{
+		return;
+	}
 
 	if(finishedWave == true)
 	{
@@ -56,7 +79,6 @@ void ASpawner::Tick(float DeltaTime)
 		warningStop = warningStop +	DeltaTime;	
 	}
 	
-
 	if(warningStop >= 2)
 	{
 		warningStop = 0;
@@ -102,11 +124,10 @@ void ASpawner::StartWave()
 {
 	waveCounter ++;
 	GetWorldTimerManager().SetTimer(timer, this, &ASpawner::SpawnEnemies, 1.0f, true, 2.0f);
-}
+}	
 
 void ASpawner::SpawnEnemies()
 {
-
 	if(enemiesSpawned >= amountOfEnemiesToSpawn)
 	{
 		GetWorldTimerManager().ClearTimer(timer);
@@ -137,9 +158,14 @@ void ASpawner::SpawnEnemies()
 
 void ASpawner::FinishWave(AEnemyCharacter* enemyToRemove)
 {
+	if (!HasAuthority())
+	{
+		return;
+	}
+	
 	ListOfEnemiesSpawned.Remove(enemyToRemove);
 	UE_LOG(LogTemp, Log, TEXT("CannonMesh killed: %s"), *enemyToRemove->GetName());
-	player->getCoins(enemyToRemove->GiveCoins());
+	GameState->Server_AddCoins(enemyToRemove->GiveCoins());
 	if(enemiesSpawned >= amountOfEnemiesToSpawn && ListOfEnemiesSpawned.Num() <=0)
 	{
 		enemyToRemove->Delegate.RemoveDynamic(this, &ASpawner::FinishWave);
@@ -148,5 +174,3 @@ void ASpawner::FinishWave(AEnemyCharacter* enemyToRemove)
 		finishedWave = true;
 	}
 }
-
-

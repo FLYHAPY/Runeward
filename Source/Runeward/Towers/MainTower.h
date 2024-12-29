@@ -32,7 +32,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	// Function to apply damage to the tower
-	void TakeDamage(float DamageAmount);
+	void TakeDamage2(float DamageAmount);
 
 	UFUNCTION(BlueprintPure)
 	float ReturnHealth();

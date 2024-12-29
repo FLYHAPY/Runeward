@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AsyncTreeDifferences.h"
 #include "GameFramework/Actor.h"
 #include "BulletPool.generated.h"
 
@@ -58,7 +59,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UFUNCTION()
+	//template<typename T>
 	AActor* TakeObjectOut(FName objectToTakeOut);
 
 	UFUNCTION()
@@ -77,3 +78,25 @@ private:
 	void PortBull(AActor* position);*/
 	
 };
+
+//this happens when an object call the pool to teleport an object to a certain location
+/*template <typename T>
+T* ABulletPool::TakeObjectOut(FName objectToTakeOut)
+{
+	TArray <TWeakObjectPtr<AActor>>* objectsOfThatType = MultiMap.Find(objectToTakeOut);
+	if(!objectsOfThatType)
+		return nullptr;
+	
+	int IndexToRemove = objectsOfThatType->Num() - 1;
+	if(objectsOfThatType->IsValidIndex(IndexToRemove))
+	{
+		TWeakObjectPtr<AActor> objectPulledOut = (*objectsOfThatType)[IndexToRemove];
+		if(T* ObjectOfClassCheck = Cast<T>(objectPulledOut))
+		{
+			objectsOfThatType->RemoveAt(IndexToRemove);
+		
+			return ObjectOfClassCheck;
+		}
+	}
+	return nullptr;
+}*/

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "CoreMinimal.h"
+
 #include "GameFramework/Actor.h"
 #include "ARuneTower.generated.h"
 
@@ -17,9 +17,6 @@ protected:
 
 public:	
 	virtual void Tick(float DeltaTime) override;
-
-	// Function to apply damage to the tower
-	void TakeDamage(float DamageAmount);
 
 private:
 	UPROPERTY(EditAnywhere, Category = "Tower")

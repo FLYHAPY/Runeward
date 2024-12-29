@@ -34,7 +34,7 @@ void AMainTower::Tick(float DeltaTime)
 }
 
 // Function to apply damage to the tower
-void AMainTower::TakeDamage(float DamageAmount)
+void AMainTower::TakeDamage2(float DamageAmount)
 {
 	Health -= DamageAmount;
 	if (GEngine) {

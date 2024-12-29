@@ -2,7 +2,6 @@
 
 #include "RunewardCharacter.h"
 
-
 #include "Engine/LocalPlayer.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -16,7 +15,10 @@
 #include "Towers/BulletPool.h"
 #include "Towers/PoolSpawnable.h"
 #include "DrawDebugHelpers.h"  // Required for debug drawing functions
+#include "MyGameStateBase.h"
 #include "Enemeis/EnemyCharacter.h"
+#include "Net/UnrealNetwork.h"
+#include "Towers/TowerCost.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -66,8 +68,6 @@ ARunewardCharacter::ARunewardCharacter()
 	isAttacking = false;
 
 	attackColdown = 1.5f;
-
-	coins = 0;
 }
 
 void ARunewardCharacter::BeginPlay()
@@ -80,6 +80,11 @@ void ARunewardCharacter::BeginPlay()
 
 	ScriptDelegate4.BindUFunction(this, "OnPlayerSwordHit");
 
+	if(AMyGameStateBase* GameStateBase = Cast<AMyGameStateBase>(GetWorld()->GetGameState()))
+	{
+		GameState = GameStateBase;
+	}
+
 	if(FoundPool.Num() >= 1)
 	{
 		pool = Cast<ABulletPool>(FoundPool[0]);
@@ -89,6 +94,12 @@ void ARunewardCharacter::BeginPlay()
 	{
 		weaponMesh = FoundWeaponMesh;
 	}
+}
+
+void ARunewardCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ARunewardCharacter, isAttacking);
 }
 
 void ARunewardCharacter::SpawnCannon()
@@ -106,16 +117,12 @@ void ARunewardCharacter::SpawnCannon()
 			necessaryCoins = 10;
 	}
 
-	if(necessaryCoins > coins)
-		return;
-	else
-		coins -= necessaryCoins;
 
 	// Variables
-	float TraceRadius = 100.0f;
 	FVector PlayerLocation = GetActorLocation();
 	FVector ForwardVector = GetActorForwardVector();
 	float SpawnDistance = 200.0f;
+	float TraceRadius = 100.0f;
 
 	// Calculate spawn location in front of player
 	FVector SpawnLocation = PlayerLocation + (ForwardVector * SpawnDistance) + FVector(0, 0, -100);
@@ -180,20 +187,7 @@ void ARunewardCharacter::SpawnCannon()
 	// Check if there's an obstruction
 	if (bSpawnAllowed)
 	{
-		// No obstruction or floor hit, spawn the cube
-		AActor* tower = pool->TakeObjectOut(TowerToSpawn[index]);
-
-		if(!tower)
-		{
-			return;
-		}
-		
-		tower->SetActorLocation(SpawnLocation, false, nullptr, ETeleportType::ResetPhysics);
-
-		if(IPoolSpawnable* Spawnable = Cast<IPoolSpawnable>(tower))
-		{
-			Spawnable->OnSpawnedFromPool(this);
-		}
+		Server_SpawnTowerOnServer(SpawnLocation, TowerToSpawn[index]);
 	}
 	else
 	{
@@ -232,19 +226,46 @@ void ARunewardCharacter::OnPlayerSwordHit(UPrimitiveComponent* HitComp, AActor* 
 	{
 		if(AEnemyCharacter* enemy = Cast<AEnemyCharacter>(OtherActor))
 		{
-			enemy->SetCurrentHealth(50);
+			Server_DealDamageTOEnemy(enemy);
 		}
 	}
 }
 
-int ARunewardCharacter::returnCoins()
+void ARunewardCharacter::Server_DealDamageTOEnemy_Implementation(AEnemyCharacter* enemy)
 {
-	return coins;
+	enemy->SetCurrentHealth(50);
 }
 
-void ARunewardCharacter::getCoins(int enemyCoins)
+void ARunewardCharacter::Server_SpawnTowerOnServer_Implementation(FVector SpawnLocation, FName TowerToSpawnFname)
 {
-	coins += enemyCoins;
+	// No obstruction or floor hit, spawn the cube
+	AActor* tower = pool->TakeObjectOut(TowerToSpawnFname);
+	
+	if(!tower)
+	{
+		return;
+	}
+
+	if(ITowerCost* cost = Cast<ITowerCost>(tower))
+	{
+		if(cost->TowerCost() > GameState->GetCoins())
+		{
+			return;
+		}
+		else
+		{
+			GameState->RemoveCoins(cost->TowerCost());
+		}
+	}
+		
+	tower->SetActorLocation(SpawnLocation, false, nullptr, ETeleportType::ResetPhysics);
+
+	if(IPoolSpawnable* Spawnable = Cast<IPoolSpawnable>(tower))
+	{
+		Spawnable->OnSpawnedFromPool(this);
+
+		GameState->RemoveCoins(necessaryCoins);
+	}
 }
 
 

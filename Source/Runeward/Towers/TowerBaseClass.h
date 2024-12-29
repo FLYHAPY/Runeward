@@ -2,15 +2,16 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
+
 #include "PoolSpawnable.h"
+#include "TowerCost.h"
 #include "GameFramework/Actor.h"
 #include "TowerBaseClass.generated.h"
 
 class AEnemyBase;
 
 UCLASS()
-class RUNEWARD_API ATowerBaseClass : public AActor, public IPoolSpawnable
+class RUNEWARD_API ATowerBaseClass : public AActor, public IPoolSpawnable, public ITowerCost
 {
 	GENERATED_BODY()
 	
@@ -69,6 +70,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USceneComponent* firePosition;
 
+	UPROPERTY(EditAnywhere, Category="Stats")
+	float cost;
+
 
 public:	
 	// Called every frame
@@ -81,6 +85,8 @@ public:
 	AActor* GetLockedEnemy();
 
 	virtual void OnSpawnedFromPool(AActor* Requestee) override;
+
+	virtual float TowerCost() override;
 	
 	UFUNCTION()
 	void Shoot();

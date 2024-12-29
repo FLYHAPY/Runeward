@@ -105,6 +105,11 @@ void AExplosivePotion::UnregisterFromCollision() const
 	}
 }
 
+float AExplosivePotion::TowerCost()
+{
+	return cost;
+}
+
 void AExplosivePotion::OnSpawnedFromPool(AActor* Requestee)
 {
 	RegisterToCollision();

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "CoreMinimal.h"
+
 #include "GameFramework/Character.h"
 #include "Components/BoxComponent.h"
 #include "Runeward/Towers/MainTower.h"
@@ -54,7 +54,7 @@ public:
 	FDelegate Delegate;
 
 	UFUNCTION()
-	int GiveCoins();
+	float GiveCoins();
 	
 	UFUNCTION(BlueprintCallable, Category = "MyBlueprintCategory")
 	bool isEnemyAttacking();
@@ -81,7 +81,7 @@ private:
 
 	AMainTower* RuneTower;
 
-	int coins;
+	float coins;
 
 	// Tower mesh
 	UPROPERTY(VisibleAnywhere, Category="Components")
@@ -98,8 +98,10 @@ private:
 	UPROPERTY(EditAnywhere, Category="Refrecens")
 	class ABulletPool* pool;
 
-	UPROPERTY(VisibleAnywhere, Category="Stats")
+	UPROPERTY(Replicated)
 	bool isAttacking;
+
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 	FScriptDelegate swordScriptDelegate;
 

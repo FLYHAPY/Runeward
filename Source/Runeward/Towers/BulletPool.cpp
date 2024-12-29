@@ -1,6 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 #include "BulletPool.h"
 
+#include "Kismet/KismetSystemLibrary.h"
+
 // Sets default values
 ABulletPool::ABulletPool()
 {
@@ -13,7 +15,10 @@ ABulletPool::ABulletPool()
 void ABulletPool::BeginPlay()
 {
 	Super::BeginPlay();
-	CreatePooledObjects();
+
+	if(UKismetSystemLibrary::IsServer(GetWorld()))
+		CreatePooledObjects();
+	
 	//CacheBulletsIntoQueue();
 }
 

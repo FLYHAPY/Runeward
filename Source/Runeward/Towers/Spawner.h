@@ -2,8 +2,9 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
+
 #include "GameFramework/Actor.h"
+#include "Runeward/MyGameStateBase.h"
 #include "Runeward/Enemeis/EnemyCharacter.h"
 #include "Spawner.generated.h"
 
@@ -20,17 +21,19 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	UPROPERTY(EditAnywhere, Category="Waves")
+	UPROPERTY(Replicated)
 	int waveCounter;
 
 	UPROPERTY(EditAnywhere, Category="Waves")
 	int amountOfEnemiesToSpawn;
 
-	UPROPERTY(EditAnywhere, Category="Waves")
+	UPROPERTY(Replicated)
 	int enemiesSpawned;
 
-	UPROPERTY(EditAnywhere, Category="Waves")
+	UPROPERTY(Replicated)
 	float timeBetweenWaves;
+
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UPROPERTY(EditAnywhere, Category="Waves")
 	int WavesCooldown;
@@ -41,8 +44,13 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Refrecens")
 	class ARunewardCharacter* player;
 
+	UPROPERTY(EditAnywhere, Category="Refrecens")
+	AMyGameStateBase* GameState;
+
+	UPROPERTY(EditAnywhere, Category="Waves")
 	float warningStop;
 
+	UPROPERTY(Replicated)
 	bool stop;
 
 	UPROPERTY()
@@ -51,6 +59,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Waves")
 	FVector spawnLocation;
 
+	UPROPERTY(Replicated)
 	bool finishedWave;
 
 	UPROPERTY(EditAnywhere, Category="Waves")

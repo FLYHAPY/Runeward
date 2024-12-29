@@ -4,11 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "PoolSpawnable.h"
+#include "TowerCost.h"
 #include "GameFramework/Actor.h"
 #include "ExplosivePotion.generated.h"
 
 UCLASS()
-class RUNEWARD_API AExplosivePotion : public AActor, public IPoolSpawnable
+class RUNEWARD_API AExplosivePotion : public AActor, public IPoolSpawnable, public ITowerCost
 {
 	GENERATED_BODY()
 	
@@ -39,6 +40,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Refrecens")
 	class ABulletPool* pool;
 
+	UPROPERTY(EditAnywhere, Category="Stats")
+	float cost;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -50,6 +54,8 @@ public:
 
 	void RegisterToCollision() const;
 	void UnregisterFromCollision() const;
+
+	virtual float TowerCost() override;
 
 	virtual void OnSpawnedFromPool(AActor* Requestee) override;
 

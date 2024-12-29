@@ -1,6 +1,6 @@
 #pragma once
 
-#include "CoreMinimal.h"
+
 #include "AIController.h"
 #include "EnemyAIController.generated.h"
 
@@ -20,6 +20,17 @@ public:
 	// Function to check distance to the player
 	bool IsPlayerInRange();
 
+	//eXAMPLE sAKE
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	UPROPERTY(Replicated)
+	float ExampleProperty;
+
+	UFUNCTION(Server, Reliable)
+	void RunOnServerExample();
+
+	UFUNCTION()
+	ACharacter* GetClosestPlayer();
+	
 private:
 	FTimerHandle TimerHandle;
 
@@ -31,4 +42,5 @@ private:
 	UPROPERTY(EditAnywhere, Category="AI")
 	float DetectionRadius = 1200.0f;
 	virtual void OnPossess(APawn* InPawn) override;
+	
 };

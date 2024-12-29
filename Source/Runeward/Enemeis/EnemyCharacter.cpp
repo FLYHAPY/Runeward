@@ -5,7 +5,7 @@
 #include "Components/BoxComponent.h"
 #include "TimerManager.h"
 #include "Components/CapsuleComponent.h"
-#include "Runeward/Towers/Bullet.h"
+#include "Net/UnrealNetwork.h"
 #include "Runeward/Towers/BulletPool.h"
 
 // Constructor
@@ -89,14 +89,18 @@ void AEnemyCharacter::Tick(float DeltaTime)
     }
 }
 
-void AEnemyCharacter::OnSwordOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-    UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+//this 2 functions purpose is to check if there is a player or RuneTower in range
+void AEnemyCharacter::OnSwordOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-    // Check if the other actor is the player
-    ACharacter* PlayerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-    if (PlayerCharacter && OtherActor == PlayerCharacter)
+    TArray<AActor*> PlayerActors;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), ARunewardCharacter::StaticClass(), PlayerActors);
+
+    for(int32 i = 0; i < PlayerActors.Num(); i++)
     {
-        bIsPlayerInAttackRange = true;
+        if(PlayerActors[i] == OtherActor)
+        {
+            bIsPlayerInAttackRange = true;
+        }
     }
 
 
@@ -107,14 +111,17 @@ void AEnemyCharacter::OnSwordOverlapBegin(UPrimitiveComponent* OverlappedCompone
     }
 }
 
-// Function called when exiting overlap with the player
-void AEnemyCharacter::OnSwordOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-    UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+void AEnemyCharacter::OnSwordOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-    ACharacter* PlayerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-    if (PlayerCharacter && OtherActor == PlayerCharacter)
+    TArray<AActor*> PlayerActors;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), ARunewardCharacter::StaticClass(), PlayerActors);
+
+    for(int32 i = 0; i < PlayerActors.Num(); i++)
     {
-        bIsPlayerInAttackRange = false;
+        if(PlayerActors[i] == OtherActor)
+        {
+            bIsPlayerInAttackRange = false;
+        }
     }
 
     if (OtherActor == RuneTower)
@@ -144,7 +151,7 @@ void AEnemyCharacter::ApplyDamageToTower(AMainTower* Tower)
 {
     if (Tower && bCanAttack)
     {
-        Tower->TakeDamage(10.0f);
+        Tower->TakeDamage2(10.0f);
         bCanAttack = false;
         GetWorldTimerManager().SetTimer(AttackCooldownTimer, this, &AEnemyCharacter::ResetAttack, AttackCooldown, false);
     }
@@ -196,6 +203,13 @@ bool AEnemyCharacter::isEnemyAttacking()
     return isAttacking;
 }
 
+void AEnemyCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+    DOREPLIFETIME(AEnemyCharacter, isAttacking);
+}
+
 void AEnemyCharacter::OnSwordHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
     ACharacter* PlayerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
@@ -207,7 +221,7 @@ void AEnemyCharacter::OnSwordHit(UPrimitiveComponent* HitComp, AActor* OtherActo
     }
 }
 
-int AEnemyCharacter::GiveCoins()
+float AEnemyCharacter::GiveCoins()
 {
     return coins;
 }

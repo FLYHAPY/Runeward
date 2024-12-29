@@ -44,8 +44,12 @@ ATowerBaseClass::ATowerBaseClass()
 
 	spawned = false;
 
+	myBulletSpeed = 2000;
+
 
 	Tags.Add(FName("Bullet"));
+
+	timer = 0;
 
 }
 
@@ -68,15 +72,18 @@ void ATowerBaseClass::Tick(float DeltaTime)
 
 	if(spawned)
 	{
-		timer += DeltaTime;
-	
-		if(lockedEnemy && timer >= fireRate)
+		if(lockedEnemy)
 		{
-			Shoot();
+			timer += DeltaTime;
+
+			if(timer >= fireRate)
+			{
+				Shoot();
+			}
 		}	
 	}
 
-	if(myBulletSpeed != 0 && lockedEnemy)
+	if(lockedEnemy)
 	{
 		RotateCannonTowardsEnemy(myBulletSpeed);
 	}
@@ -86,6 +93,11 @@ void ATowerBaseClass::OnSpawnedFromPool(AActor* Requestee)
 {
 	spawned = true;
 	CheckForEnemies();
+}
+
+float ATowerBaseClass::TowerCost()
+{
+	return cost;
 }
 
 void ATowerBaseClass::Shoot()
@@ -110,11 +122,7 @@ void ATowerBaseClass::Shoot()
 	if(!lockedEnemy)
 		return;
 
-	if(sureToKillBlacklist->IsEnemySureToKill(lockedEnemy))
-	{
-		LockToAnEnemy();
-	}
-
+	
 	IsLockedEnemyInsideRadius();
 	
 	if(!lockedEnemy)
@@ -138,14 +146,6 @@ void ATowerBaseClass::Shoot()
 		myBullet->SetDamage(damage);
 	}
 
-	if(myBulletSpeed == 0)
-	{
-		if(ABullet* myBullet = Cast<ABullet>(bullet))
-		{
-			myBulletSpeed = myBullet->GetBulletSpeed();
-		}
-	}
-
 	if(IPoolSpawnable* Spawnable = Cast<IPoolSpawnable>(bullet))
 	{
 		Spawnable->OnSpawnedFromPool(this);
@@ -157,20 +157,8 @@ void ATowerBaseClass::Shoot()
 void ATowerBaseClass::LockToAnEnemy()
 {
 	Sort();
-	for(int i = 0; i < EnemiesInRange.Num(); i++)
-	{
-		if(!sureToKillBlacklist->IsEnemySureToKill(EnemiesInRange[i]))
-		{
-			lockedEnemy = EnemiesInRange[i];
-			return;
-		}
-
-		//means all enemies in range are sure to kill
-		if(i >= EnemiesInRange.Num() - 1)
-		{
-			lockedEnemy = nullptr;
-		}
-	}
+	if(EnemiesInRange.Num() > 0)
+		lockedEnemy = EnemiesInRange[0];
 }
 
 void ATowerBaseClass::IsLockedEnemyInsideRadius()
