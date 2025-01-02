@@ -143,7 +143,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = Functions)
 	bool ReturnIsAttacking();
 
-	UFUNCTION(BlueprintCallable, Category = Functions)
+	UFUNCTION(Server, Reliable)
 	void OnAttack();
 
 	UFUNCTION(BlueprintCallable, Category = Functions)
