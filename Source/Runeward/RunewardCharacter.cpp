@@ -204,7 +204,7 @@ void ARunewardCharacter::SpawnCannon()
 	*/
 }
 
-void ARunewardCharacter::OnAttack()
+void ARunewardCharacter::OnAttack_Implementation()
 {
 	if(!isAttacking)
 	{
