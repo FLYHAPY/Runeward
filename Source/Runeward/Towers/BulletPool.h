@@ -16,7 +16,7 @@ struct FConstructionList
 	FName Key;
 
 	UPROPERTY(EditAnywhere)
-	int howManyObjectsToSpawn;
+	int howManyObjectsToSpawn = 10;
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<AActor> ClassToSpawn;

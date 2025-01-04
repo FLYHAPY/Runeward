@@ -146,12 +146,14 @@ APlayerController* AIngameDeathmatchGamemode::Login(UPlayer* NewPlayer, ENetRole
 	FString InName = UGameplayStatics::ParseOption(Options, TEXT("Name")).Left(20);
 	ChangeName(PlayerController, InName, false);
 
+	/*
 	FString InAuthToken = UGameplayStatics::ParseOption(Options, TEXT("AuthToken")).Left(20);
 	if(!IsClientAuthTokenValid(InAuthToken))
 	{
 		// TODO: Return Some Error Message of Invalid Login Token For This Session
 		return nullptr;
 	}
+	*/
 	
 	return PlayerController;
 }
