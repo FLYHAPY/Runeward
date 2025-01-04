@@ -26,6 +26,9 @@ public: // Gameplay Functions
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player")
+	UClass* PlayerCharacter;
+
 private: // Player Login And Character Creation
 	
 	/**

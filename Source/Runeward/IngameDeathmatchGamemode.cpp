@@ -205,7 +205,7 @@ void AIngameDeathmatchGamemode::PostLogin(APlayerController* NewPlayer)
 	// It's not implemented yet but this data can be sent across and given to the server to handle as he sees fit
 	// For now we just alternate
 
-	static const FName MannyTableID = "Manny";
+	/*static const FName MannyTableID = "Manny";
 	static const FName QuinnTableID = "Quinn";
 
 	static int LastSpawnedCharacter = 0;
@@ -217,7 +217,7 @@ void AIngameDeathmatchGamemode::PostLogin(APlayerController* NewPlayer)
 		return;
 	}
 
-	UClass* CharacterClassToSpawn = SelectedCharacterRow->CharacterSoftClassPointer.LoadSynchronous();
+	UClass* CharacterClassToSpawn = SelectedCharacterRow->CharacterSoftClassPointer.LoadSynchronous();*/
 
 	// This exists as a default implementation, We could get our own find whats in the scene with tags etc.
 	// Second parameter is to use a tag to find a specific type of player start such as red or blue teams
@@ -228,7 +228,7 @@ void AIngameDeathmatchGamemode::PostLogin(APlayerController* NewPlayer)
 	
 	FActorSpawnParameters SpawnParameters;
 	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	ACharacter* SpawnedCharacter = Cast<ACharacter>(GetWorld()->SpawnActor(CharacterClassToSpawn, &PlayerLocation, &PlayerRotation, SpawnParameters));
+	ACharacter* SpawnedCharacter = Cast<ACharacter>(GetWorld()->SpawnActor(PlayerCharacter, &PlayerLocation, &PlayerRotation, SpawnParameters));
 	if(!SpawnedCharacter)
 	{
 		// Some Error Message;
