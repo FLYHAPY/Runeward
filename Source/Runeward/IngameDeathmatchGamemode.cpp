@@ -132,19 +132,25 @@ void AIngameDeathmatchGamemode::PreLogin(const FString& Options, const FString& 
 APlayerController* AIngameDeathmatchGamemode::Login(UPlayer* NewPlayer, ENetRole InRemoteRole, const FString& Portal, const FString& Options, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
 {
 	// Super Uses GameSessions, as this will fail we will handle the controller spawning ourselves
-	Super::Login(NewPlayer, InRemoteRole, Portal, Options, UniqueId, ErrorMessage);
+	APlayerController* PlayerController = Super::Login(NewPlayer, InRemoteRole, Portal, Options, UniqueId, ErrorMessage);
 
+	if(!PlayerController)
+	{
+		PlayerController = SpawnPlayerController(InRemoteRole, Options);
+		PlayerController->SetInitialLocationAndRotation(FVector::ZeroVector, FRotator::ZeroRotator);	
+	}
+	
 	// In this case I'll spawn this normally, if you have a character that requires a specific controller, you could do that logic here
-	APlayerController* PlayerController = SpawnPlayerController(InRemoteRole, Options);
+	//APlayerController* PlayerController = SpawnPlayerController(InRemoteRole, Options);
 	//APlayerStart* 
 
-	PlayerController->SetInitialLocationAndRotation(FVector::ZeroVector, FRotator::ZeroRotator);	
+	//PlayerController->SetInitialLocationAndRotation(FVector::ZeroVector, FRotator::ZeroRotator);	
 
 	
 	
 	// Init player's name
-	FString InName = UGameplayStatics::ParseOption(Options, TEXT("Name")).Left(20);
-	ChangeName(PlayerController, InName, false);
+	//FString InName = UGameplayStatics::ParseOption(Options, TEXT("Name")).Left(20);
+	//ChangeName(PlayerController, InName, false);
 
 	/*
 	FString InAuthToken = UGameplayStatics::ParseOption(Options, TEXT("AuthToken")).Left(20);
