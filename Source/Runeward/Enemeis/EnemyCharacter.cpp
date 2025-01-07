@@ -54,7 +54,7 @@ void AEnemyCharacter::BeginPlay()
 
     if(swordScriptDelegate.IsBound())
     {
-        swordMesh->OnComponentHit.Add(swordScriptDelegate);
+        swordMesh->OnComponentBeginOverlap.Add(swordScriptDelegate);
     }
 
     pool = Cast<ABulletPool>(UGameplayStatics::GetActorOfClass(GetWorld(), ABulletPool::StaticClass()));
@@ -139,7 +139,7 @@ void AEnemyCharacter::ApplyDamageToPlayer()
         ARunewardCharacter* RunewardCharacter = Cast<ARunewardCharacter>(PlayerCharacter);
         if (RunewardCharacter)
         {
-            RunewardCharacter->TakeDamage1(10.0f); 
+            RunewardCharacter->TakeDamage1(20.0f); 
             bCanAttack = false;
             //GetWorldTimerManager().SetTimer(AttackCooldownTimer, this, &AEnemyCharacter::ResetAttack, AttackCooldown, false);
         }
@@ -210,7 +210,8 @@ void AEnemyCharacter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>
     DOREPLIFETIME(AEnemyCharacter, isAttacking);
 }
 
-void AEnemyCharacter::OnSwordHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+void AEnemyCharacter::OnSwordHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+        UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
     ACharacter* PlayerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
     //UE_LOG(LogTemp, Warning, TEXT("sword:  %s"), *OtherActor->GetName());

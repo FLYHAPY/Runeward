@@ -21,7 +21,7 @@ void UMatchFinderSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	// Collection.InitializeDependency();
 
 	// Just here to force the file to appear if one is not there 
-	LoadConfig();
+	//LoadConfig();
 
 	SaveConfig();
 }
@@ -174,6 +174,12 @@ void UMatchFinderSubsystem::ProcessSlowTickEvents() const
 		// Only Idle Would Happen To Land Here On Occasions
 		break;
 	}
+}
+
+void UMatchFinderSubsystem::SetMatchmakingServerIP(const FString& NewIP)
+{
+	MatchmakingServerIP = NewIP;
+	UE_LOG(LogTemp, Log, TEXT("Updated MatchmakingServerIP to: %s"), *NewIP);
 }
 
 //FString ConvertWorkerProgressToString(EMatchFindingProgress State)

@@ -52,6 +52,7 @@ public:
 	FString GetIPnPort() const					{ return ResultIPnPort;		}
 	FString GetAdditionalParameters() const		{ return ResultParameters;	}
 	EMatchFindingProgress GetProgress() const	{ return MatchFindingProgress; }
+
 	
 private: // Internal Functions
 
@@ -86,6 +87,7 @@ private: // Variables
 
 	// IP And Port To Matchmaking Server Overriden In Constructor From MatchFinderSubsystem
 	FString MatchmakingServerIP = "127.0.0.1";
+	FString MatchmakingServerIP2 = "192.168.1.16";
 	uint16  MatchmakingServerPort = 2000;
 	
 	class FSocket* SocketToMatchmakingServer = nullptr;

@@ -59,6 +59,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "MyBlueprintCategory")
 	bool isEnemyAttacking();
 
+	UFUNCTION()
+	void OnSwordHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
 private:
 	// Collision box for the enemy's "sword"
 	UPROPERTY(VisibleAnywhere, Category = "Attack")
@@ -107,7 +111,4 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category="Components")
 	class UStaticMeshComponent* swordMesh;
-
-	UFUNCTION()
-	void OnSwordHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 };

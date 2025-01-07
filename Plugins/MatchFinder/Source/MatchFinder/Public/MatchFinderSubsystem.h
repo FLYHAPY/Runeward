@@ -84,6 +84,9 @@ public: // Events
 
 	UPROPERTY(BlueprintAssignable)
 	FOnMatchFindingFailed OnMatchFindingFailedEvent;
+
+	UFUNCTION(BlueprintCallable, Category = "Matchmaking")
+	void SetMatchmakingServerIP(const FString& NewIP);
 	
 private: // Member Variables
 
@@ -100,9 +103,7 @@ private: // Member Variables
 
 private: // Config Variables
 	
-	UPROPERTY(Config)
-	FString MatchmakingServerIP = "127.0.0.1";
-
-	UPROPERTY(Config)
+	FString MatchmakingServerIP = "";
+	
 	uint16 MatchmakingServerPort = 2000;
 };
